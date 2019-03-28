@@ -1,7 +1,7 @@
-#harbor_py_ctl
+# harbor_py_ctl
 
 ### fork from [official harbor repo](https://github.com/goharbor/harbor/blob/master/contrib/registryapi)
-+a simple client tool based on api class, which contains basic read and delete operations for repo, tag, manifest
++ a simple client tool based on api class, which contains basic read and delete operations for repo, tag, manifest
 ```
 usage:
 ./cli.py --username username --password passwrod --registry_endpoint http://www.your_registry_url.com/ target action params
