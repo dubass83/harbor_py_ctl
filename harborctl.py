@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# bug-report: feilengcui008@gmail.com
+# bug-report: makssych@gmail.com
 
 """ cli tool """
 
@@ -8,6 +8,7 @@ import argparse
 import sys
 import json
 from registry import RegistryApi
+from harbor import HarborApi
 
 
 class ApiProxy(object):
@@ -32,7 +33,7 @@ class ApiProxy(object):
 
     def execute(self, target, action):
         """ execute """
-        print json.dumps(self.callbacks[target][action](), indent=4, sort_keys=True)
+        print(json.dumps(self.callbacks[target][action](), indent=4, sort_keys=True))
 
     def list_repo(self):
         """ list repo """
@@ -67,6 +68,30 @@ class ApiProxy(object):
     def get_manifest(self):
         """ get manifest """
         return self.registry.getManifestWithConf(self.args.repo, self.args.tag)
+
+
+class ApiProxy2(object):
+    """ user RegistryApi """
+    def __init__(self, registry, args):
+        self.registry = registry
+        self.args = args
+        self.callbacks = dict()
+        self.register_callback("tag", "map", self.dict_tag)
+
+    def register_callback(self, target, action, func):
+        """ register real actions """
+        if not target in self.callbacks.keys():
+            self.callbacks[target] = {action: func}
+            return
+        self.callbacks[target][action] = func
+
+    def execute(self, target, action):
+        """ execute """
+        print(json.dumps(self.callbacks[target][action](), indent=4, sort_keys=True))
+
+    def dict_tag(self):
+        """ list tag """
+        return self.registry.getTagMap(self.args.repo)
 
 
 # since just a script tool, we do not construct whole target->action->args 
@@ -127,8 +152,11 @@ def main():
     parser = get_parser()
     options = parser.parse_args(sys.argv[1:])
     registry = RegistryApi(options.username, options.password, options.registry_endpoint)
-    proxy = ApiProxy(registry, options)
-    proxy.execute(options.target, options.action)
+    harbor = HarborApi(options.username, options.password, options.registry_endpoint)
+    # proxy = ApiProxy(registry, options)
+    # proxy.execute(options.target, options.action)
+    proxy2 = ApiProxy2(harbor, options)
+    proxy2.execute(options.target, options.action)
 
 
 if __name__ == '__main__':
