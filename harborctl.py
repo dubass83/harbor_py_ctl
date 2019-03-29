@@ -76,7 +76,7 @@ class ApiProxy2(object):
         self.registry = registry
         self.args = args
         self.callbacks = dict()
-        self.register_callback("tag", "map", self.dict_tag)
+        self.register_callback("tag", "dict", self.dict_tag)
 
     def register_callback(self, target, action, func):
         """ register real actions """
@@ -90,7 +90,7 @@ class ApiProxy2(object):
         print(json.dumps(self.callbacks[target][action](), indent=4, sort_keys=True))
 
     def dict_tag(self):
-        """ list tag """
+        """ dict tag """
         return self.registry.getTagMap(self.args.repo)
 
 
@@ -124,8 +124,10 @@ def get_parser():
     tag_list_parser.add_argument('--repo', action='store', required=True, help='list tags')
     tag_delete_parser = tag_target_subparsers.add_parser('delete', help='delete tag')
     tag_delete_parser.add_argument('--repo', action='store', required=True, help='delete tags')
-    tag_delete_parser.add_argument('--tag', action='store', required=True,
-            help='tag reference')
+    tag_delete_parser.add_argument('--tag', action='store', required=True, help='tag reference')
+    tag_dict_parser = tag_target_subparsers.add_parser('dict', help='dict tag')
+    tag_dict_parser.add_argument('--tag', action='store', required=True, help='dict tag')
+
 
     # manifest target
     manifest_target_parser = subparsers.add_parser('manifest', help='target manifest')
@@ -153,8 +155,8 @@ def main():
     options = parser.parse_args(sys.argv[1:])
     registry = RegistryApi(options.username, options.password, options.registry_endpoint)
     harbor = HarborApi(options.username, options.password, options.registry_endpoint)
-    # proxy = ApiProxy(registry, options)
-    # proxy.execute(options.target, options.action)
+    proxy = ApiProxy(registry, options)
+    proxy.execute(options.target, options.action)
     proxy2 = ApiProxy2(harbor, options)
     proxy2.execute(options.target, options.action)
 
