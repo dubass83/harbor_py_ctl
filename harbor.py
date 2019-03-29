@@ -4,10 +4,9 @@
 
 """ api for docker registry """
 
-import urllib2
-# import urllib
 import json
 import base64
+import urllib.request
 
 
 class HarborException(Exception):
@@ -25,15 +24,12 @@ class HarborApi(object):
 
     def getTagMap(self, repository):
         """ get tag list for repository """
-        # scope = "repository:%s:pull" % (repository,)
-        # bear_token = self.getBearerTokenForScope(scope)
-        # if bear_token is None:
-            # return None
+
         url = "%s/api/repositories/%s/tags" % (self.registry_endpoint, repository)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.add_header('Authorization', r'Basic %s' % (self.basic_token,))
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             return json.loads(response.read())
         except Exception as e:
             return None

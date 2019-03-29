@@ -4,8 +4,8 @@
 
 """ api for docker registry """
 
-import urllib2
-import urllib
+import urllib.request
+import urllib.parse
 import json
 import base64
 
@@ -32,8 +32,8 @@ class RegistryApi(object):
         """ ping v2 registry and get realm and service """
         headers = dict()
         try:
-            res = urllib2.urlopen(registry_endpoint)
-        except urllib2.HTTPError as e:
+            res = urllib.request.urlopen(registry_endpoint)
+        except urllib.request.HTTPError as e:
             headers = e.hdrs.dict
         try:
             (realm, service, _) = headers['www-authenticate'].split(',')
@@ -43,12 +43,12 @@ class RegistryApi(object):
 
     def getBearerTokenForScope(self, scope):
         """ get bearer token from harbor """
-        payload = urllib.urlencode({'service': self.service, 'scope': scope})
+        payload = urllib.parse.urlencode({'service': self.service, 'scope': scope})
         url = "%s?%s" % (self.token_endpoint, payload)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.add_header('Authorization', 'Basic %s' % (self.basic_token,))
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             return json.loads(response.read())["token"]
         except Exception as e:
             return None
@@ -62,10 +62,10 @@ class RegistryApi(object):
         url = "%s/v2/_catalog" % (self.registry_endpoint,)
         if n is not None:
             url = "%s?n=%s" % (url, str(n))
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             return json.loads(response.read())
         except Exception as e:
             return None
@@ -77,10 +77,10 @@ class RegistryApi(object):
         if bear_token is None:
             return None
         url = "%s/v2/%s/tags/list" % (self.registry_endpoint, repository)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             return json.loads(response.read())
         except Exception as e:
             return None
@@ -92,14 +92,14 @@ class RegistryApi(object):
         if bear_token is None:
             return None
         url = "%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, reference)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.get_method = lambda: 'GET'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
         req.add_header('Accept', 'application/vnd.docker.distribution.manifest.v2+json')
         if v1:
             req.add_header('Accept', 'application/vnd.docker.distribution.manifest.v1+json')
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             return json.loads(response.read())
         except Exception as e:
             return None
@@ -111,14 +111,14 @@ class RegistryApi(object):
         if bear_token is None:
             raise RegistryException("manifestExist failed due to token error")
         url = "%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, reference)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.get_method = lambda: 'HEAD'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
         req.add_header('Accept', 'application/vnd.docker.distribution.manifest.v2+json')
         if v1:
             req.add_header('Accept', 'application/vnd.docker.distribution.manifest.v1+json')
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             return (True, response.headers.dict["docker-content-digest"])
         except Exception as e:
             return (False, None)
@@ -133,11 +133,11 @@ class RegistryApi(object):
         if bear_token is None:
             raise RegistryException("delete manifest failed due to token error")
         url = "%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, digest)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.get_method = lambda: 'DELETE'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
         try:
-            urllib2.urlopen(req)
+            urllib.request.urlopen(req)
         except Exception as e:
             return False
         return True
@@ -153,12 +153,12 @@ class RegistryApi(object):
         if bear_token is None:
             return None
         url = "%s/v2/%s/blobs/%s" % (self.registry_endpoint, repository, config_digest)
-        req = urllib2.Request(url)
+        req = urllib.request.Request(url)
         req.get_method = lambda: 'GET'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
         req.add_header('Accept', 'application/vnd.docker.distribution.manifest.v2+json')
         try:
-            response = urllib2.urlopen(req)
+            response = urllib.request.urlopen(req)
             manifest["configContent"] = json.loads(response.read())
             return manifest
         except Exception as e:
