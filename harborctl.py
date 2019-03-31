@@ -126,7 +126,7 @@ def get_parser():
     tag_delete_parser.add_argument('--repo', action='store', required=True, help='delete tags')
     tag_delete_parser.add_argument('--tag', action='store', required=True, help='tag reference')
     tag_dict_parser = tag_target_subparsers.add_parser('dict', help='dict tag')
-    tag_dict_parser.add_argument('--tag', action='store', required=True, help='dict tag')
+    tag_dict_parser.add_argument('--repo', action='store', required=True, help='dict tag')
 
 
     # manifest target
@@ -153,12 +153,13 @@ def main():
     """ main entrance """
     parser = get_parser()
     options = parser.parse_args(sys.argv[1:])
-    registry = RegistryApi(options.username, options.password, options.registry_endpoint)
-    harbor = HarborApi(options.username, options.password, options.registry_endpoint)
-    proxy = ApiProxy(registry, options)
-    proxy.execute(options.target, options.action)
-    proxy2 = ApiProxy2(harbor, options)
-    proxy2.execute(options.target, options.action)
+    # registry = RegistryApi(options.username, options.password, options.registry_endpoint)
+    # harbor = HarborApi(options.username, options.password, options.registry_endpoint)
+    print(options.target)
+    # proxy = ApiProxy(registry, options)
+    # proxy.execute(options.target, options.action)
+    # proxy2 = ApiProxy2(harbor, options)
+    # proxy2.execute(options.target, options.action)
 
 
 if __name__ == '__main__':

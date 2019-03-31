@@ -19,7 +19,8 @@ class HarborApi(object):
     def __init__(self, username, password, registry_endpoint):
         self.username = username
         self.password = password
-        self.basic_token = base64.encodestring("%s:%s" % (str(username), str(password)))[0:-1]
+        b_string = base64.encodebytes(("%s:%s" % (str(username), str(password))).encode())
+        self.basic_token = b_string.decode()[0:-1]
         self.registry_endpoint = registry_endpoint.rstrip('/')
 
     def getTagMap(self, repository):
