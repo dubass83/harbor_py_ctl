@@ -37,37 +37,37 @@ class ApiProxy(object):
 
     def list_repo(self):
         """ list repo """
-        return self.registry.getRepositoryList(self.args.num)
+        return self.registry.getRepositoryList(self.args['num'])
 
     def list_tag(self):
         """ list tag """
-        return self.registry.getTagList(self.args.repo)
+        return self.registry.getTagList(self.args['repo'])
 
     def delete_tag(self):
         """ delete tag """
-        (_, ref) = self.registry.existManifest(self.args.repo, self.args.tag)
+        (_, ref) = self.registry.existManifest(self.args['repo'], self.args['tag'])
         if ref is not None:
-            return self.registry.deleteManifest(self.args.repo, ref)
+            return self.registry.deleteManifest(self.args['repo'], ref)
         return False
 
     def list_manifest(self):
         """ list manifest """
-        tags = self.registry.getTagList(self.args.repo)["tags"]
+        tags = self.registry.getTagList(self.args['repo'])["tags"]
         manifests = list()
         if tags is None:
             return None
         for i in tags:
-            content = self.registry.getManifestWithConf(self.args.repo, i)
+            content = self.registry.getManifestWithConf(self.args['repo'], i)
             manifests.append({i: content})
         return manifests
 
     def delete_manifest(self):
         """ delete manifest """
-        return self.registry.deleteManifest(self.args.repo, self.args.ref)
+        return self.registry.deleteManifest(self.args['repo'], self.args['ref'])
 
     def get_manifest(self):
         """ get manifest """
-        return self.registry.getManifestWithConf(self.args.repo, self.args.tag)
+        return self.registry.getManifestWithConf(self.args['repo'], self.args['tag'])
 
 
 class ApiProxy2(object):
@@ -91,7 +91,7 @@ class ApiProxy2(object):
 
     def dict_tag(self):
         """ dict tag """
-        return self.registry.getTagMap(self.args.repo)
+        return self.registry.getTagMap(self.args['repo'])
 
 
 # since just a script tool, we do not construct whole target->action->args 
@@ -151,13 +151,25 @@ def get_parser():
 
 def main():
     """ main entrance """
-    parser = get_parser()
-    options = parser.parse_args(sys.argv[1:])
-    # registry = RegistryApi(options.username, options.password, options.registry_endpoint)
-    # harbor = HarborApi(options.username, options.password, options.registry_endpoint)
-    print(options.target)
-    # proxy = ApiProxy(registry, options)
-    # proxy.execute(options.target, options.action)
+    # try read config from file
+    try:
+        with open('config/_config.json') as json_data_file:
+            options = json.load(json_data_file)
+    except FileNotFoundError:
+        print("No such file or directory: 'config/config.json'")
+        print("Try get options from comand line")
+        parser = get_parser()
+        options = parser.parse_args(sys.argv[1:])
+        options = vars(options)
+
+    registry = RegistryApi(options["username"], options["password"],
+        options["registry_endpoint"])
+    harbor = HarborApi(options["username"], options["password"],
+        options["registry_endpoint"])
+
+    print(options)
+    proxy = ApiProxy(registry, options)
+    proxy.execute(options['target'], options['action'])
     # proxy2 = ApiProxy2(harbor, options)
     # proxy2.execute(options.target, options.action)
 

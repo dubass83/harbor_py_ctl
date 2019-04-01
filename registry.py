@@ -23,7 +23,7 @@ class RegistryApi(object):
         b_string = base64.encodebytes(("%s:%s" % (str(username), str(password))).encode())
         self.basic_token = b_string.decode()[0:-1]
         self.registry_endpoint = registry_endpoint.rstrip('/')
-        auth = self.pingRegistry("%s/v2/_catalog" % (self.registry_endpoint,))
+        auth = self.pingRegistry("https://%s/v2/_catalog" % (self.registry_endpoint,))
         if auth is None:
             raise RegistryException("get token realm and service failed")
         self.token_endpoint = auth[0]
@@ -35,9 +35,10 @@ class RegistryApi(object):
         try:
             res = urllib.request.urlopen(registry_endpoint)
         except urllib.request.HTTPError as e:
-            headers = e.hdrs.dict
+            headers = dict(e.hdrs)
+            # print(headers['Www-Authenticate'])
         try:
-            (realm, service, _) = headers['www-authenticate'].split(',')
+            (realm, service, _) = headers['Www-Authenticate'].split(',')
             return (realm[14:-1:], service[9:-1])
         except Exception as e:
             return None
@@ -60,9 +61,9 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             return None
-        url = "%s/v2/_catalog" % (self.registry_endpoint,)
+        url = "https://%s/v2/_catalog" % (self.registry_endpoint,)
         if n is not None:
-            url = "%s?n=%s" % (url, str(n))
+            url = "https://%s?n=%s" % (url, str(n))
         req = urllib.request.Request(url)
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
         try:
@@ -77,7 +78,7 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             return None
-        url = "%s/v2/%s/tags/list" % (self.registry_endpoint, repository)
+        url = "https://%s/v2/%s/tags/list" % (self.registry_endpoint, repository)
         req = urllib.request.Request(url)
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
         try:
@@ -92,7 +93,7 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             return None
-        url = "%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, reference)
+        url = "https://%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, reference)
         req = urllib.request.Request(url)
         req.get_method = lambda: 'GET'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
@@ -111,7 +112,7 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             raise RegistryException("manifestExist failed due to token error")
-        url = "%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, reference)
+        url = "https://%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, reference)
         req = urllib.request.Request(url)
         req.get_method = lambda: 'HEAD'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
@@ -133,7 +134,7 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             raise RegistryException("delete manifest failed due to token error")
-        url = "%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, digest)
+        url = "https://%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, digest)
         req = urllib.request.Request(url)
         req.get_method = lambda: 'DELETE'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
@@ -153,7 +154,7 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             return None
-        url = "%s/v2/%s/blobs/%s" % (self.registry_endpoint, repository, config_digest)
+        url = "https://%s/v2/%s/blobs/%s" % (self.registry_endpoint, repository, config_digest)
         req = urllib.request.Request(url)
         req.get_method = lambda: 'GET'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
