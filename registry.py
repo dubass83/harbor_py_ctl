@@ -20,10 +20,14 @@ class RegistryApi(object):
     def __init__(self, username, password, registry_endpoint):
         self.username = username
         self.password = password
-        b_string = base64.encodebytes(("%s:%s" % (str(username), str(password))).encode())
+        b_string = base64.encodebytes((
+            "%s:%s" % (str(username), str(password))
+            ).encode())
         self.basic_token = b_string.decode()[0:-1]
         self.registry_endpoint = registry_endpoint.rstrip('/')
-        auth = self.pingRegistry("https://%s/v2/_catalog" % (self.registry_endpoint,))
+        auth = self.pingRegistry(
+            "https://%s/v2/_catalog" % (self.registry_endpoint,)
+            )
         if auth is None:
             raise RegistryException("get token realm and service failed")
         self.token_endpoint = auth[0]
@@ -45,7 +49,9 @@ class RegistryApi(object):
 
     def getBearerTokenForScope(self, scope):
         """ get bearer token from harbor """
-        payload = urllib.parse.urlencode({'service': self.service, 'scope': scope})
+        payload = urllib.parse.urlencode(
+            {'service': self.service, 'scope': scope}
+            )
         url = "%s?%s" % (self.token_endpoint, payload)
         req = urllib.request.Request(url)
         req.add_header('Authorization', 'Basic %s' % (self.basic_token,))
@@ -78,7 +84,9 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             return None
-        url = "https://%s/v2/%s/tags/list" % (self.registry_endpoint, repository)
+        url = "https://%s/v2/%s/tags/list" % (
+            self.registry_endpoint, repository
+            )
         req = urllib.request.Request(url)
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
         try:
@@ -93,7 +101,9 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             return None
-        url = "https://%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, reference)
+        url = "https://%s/v2/%s/manifests/%s" % (
+            self.registry_endpoint, repository, reference
+            )
         req = urllib.request.Request(url)
         req.get_method = lambda: 'GET'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
@@ -112,7 +122,9 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             raise RegistryException("manifestExist failed due to token error")
-        url = "https://%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, reference)
+        url = "https://%s/v2/%s/manifests/%s" % (
+            self.registry_endpoint, repository, reference
+            )
         req = urllib.request.Request(url)
         req.get_method = lambda: 'HEAD'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))
@@ -134,7 +146,9 @@ class RegistryApi(object):
         bear_token = self.getBearerTokenForScope(scope)
         if bear_token is None:
             raise RegistryException("delete manifest failed due to token error")
-        url = "https://%s/v2/%s/manifests/%s" % (self.registry_endpoint, repository, digest)
+        url = "https://%s/v2/%s/manifests/%s" % (
+            self.registry_endpoint, repository, digest
+            )
         req = urllib.request.Request(url)
         req.get_method = lambda: 'DELETE'
         req.add_header('Authorization', r'Bearer %s' % (bear_token,))

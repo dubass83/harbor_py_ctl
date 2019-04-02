@@ -76,7 +76,7 @@ class ApiProxy2(object):
         self.registry = registry
         self.args = args
         self.callbacks = dict()
-        self.register_callback("tag", "dict", self.dict_tag)
+        self.register_callback("tag", "clean", self.tag_clean)
 
     def register_callback(self, target, action, func):
         """ register real actions """
@@ -89,9 +89,9 @@ class ApiProxy2(object):
         """ execute """
         print(json.dumps(self.callbacks[target][action](), indent=4, sort_keys=True))
 
-    def dict_tag(self):
-        """ dict tag """
-        return self.registry.getTagMap(self.args['repo'])
+    def tag_clean(self):
+        """ tag clean"""
+        return self.registry.retentionPolicy(self.args['repo'], self.args['count'])
 
 
 # since just a script tool, we do not construct whole target->action->args 
@@ -103,7 +103,7 @@ def get_parser():
 
     parser.add_argument('--username', action='store', required=True, help='username')
     parser.add_argument('--password', action='store', required=True, help='password')
-    parser.add_argument('--registry_endpoint', action='store', required=True, 
+    parser.add_argument('--registry_endpoint', action='store', required=True,
             help='registry endpoint')
 
     subparsers = parser.add_subparsers(dest='target', help='target to operate on')
@@ -153,7 +153,7 @@ def main():
     """ main entrance """
     # try read config from file
     try:
-        with open('config/_config.json') as json_data_file:
+        with open('config/config.json') as json_data_file:
             options = json.load(json_data_file)
     except FileNotFoundError:
         print("No such file or directory: 'config/config.json'")
@@ -168,10 +168,14 @@ def main():
         options["registry_endpoint"])
 
     print(options)
+
+    if 'from_file' in options:
+        proxy2 = ApiProxy2(harbor, options)
+        proxy2.execute(options['target'], options['action'])
+        return 'Done!'
+
     proxy = ApiProxy(registry, options)
     proxy.execute(options['target'], options['action'])
-    # proxy2 = ApiProxy2(harbor, options)
-    # proxy2.execute(options.target, options.action)
 
 
 if __name__ == '__main__':
