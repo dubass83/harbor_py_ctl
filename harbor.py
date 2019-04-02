@@ -98,7 +98,7 @@ class HarborApi(object):
 
         try:
             response = urllib.request.urlopen(req)
-            print("Success: %s           code: %s" % (
+            print("Success: {:17}code: {}".format(
                 tag['name'], response.getcode()
                 ))
         except urllib.error.URLError as error:

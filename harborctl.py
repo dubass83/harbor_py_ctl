@@ -167,8 +167,6 @@ def main():
     harbor = HarborApi(options["username"], options["password"],
         options["registry_endpoint"])
 
-    print(options)
-
     if 'from_file' in options:
         proxy2 = ApiProxy2(harbor, options)
         proxy2.execute(options['target'], options['action'])
