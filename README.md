@@ -19,11 +19,31 @@ res = api.deleteManifest('public/ubuntu', '23424545**4343')
 + a simple client tool based on api class, which contains basic read and delete operations for repo, tag, manifest
 ```
 usage:
-./cli.py --username username --password passwrod --registry_endpoint http://www.your_registry_url.com/ target action params
+./harborctl.py --username username --password passwrod --registry_endpoint http://www.your_registry_url.com/ target action params
 
 target can be: repo, tag, manifest
 action can be: list, get, delete
 params can be: --repo --ref --tag
 
 more see: ./cli.py -h
+```
++ a simple retention policy based on harbor api class and use config.json
+```
+usage:
+create file config/config.json in root folder and run ./harborctl.py
+```
+example of config.json
+```json
+{
+"from_file" : true,
+"action" : "clean",
+"username" : "username",
+"password" : "password",
+"registry_endpoint" : "harbor.example.com", 
+"repo" : [
+"project/repo", "project/repo2"
+],
+"target" : "tag",
+"count" : 20
+}
 ```
