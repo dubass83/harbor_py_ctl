@@ -32,7 +32,7 @@ more see: ./cli.py -h
 usage:
 create file config/config.json in root folder and run ./harborctl.py
 ```
-example of config.json
++ example of config.json
 ```json
 {
 "from_file" : true,
