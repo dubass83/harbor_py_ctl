@@ -1,0 +1,8 @@
+config/config.json
+.git
+Dockerfile
+.dockerignore
+.gitignore
+*.pyc
+__pycache__
+.vscode
