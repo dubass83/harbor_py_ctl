@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
-# bug-report: feilengcui008@gmail.com
+# bug-report: makssych@gmail.com
 
 """ api for docker registry """
 
