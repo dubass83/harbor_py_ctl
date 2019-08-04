@@ -2,13 +2,24 @@
 # -*- coding:utf-8 -*-
 # bug-report: makssych@gmail.com
 
-""" cli tool """
+"""Simple cli tool to work with harbor api.
 
+cli tool
+which work with harbor api and make some admin task.
+Firs of all it's made for cleaning from old and useless
+tags in my private registry
+"""
+import logging
+import logging.handlers
+import os
 import argparse
 import sys
 import json
 from registry import RegistryApi
 from harbor import HarborApi
+
+
+logger = logging.getLogger(os.path.splitext(os.path.basename(sys.argv[0]))[0])
 
 
 class ApiProxy(object):
@@ -94,12 +105,19 @@ class ApiProxy2(object):
         return self.registry.retentionPolicy(self.args['repo'], self.args['count'])
 
 
+class CustomFormatter(argparse.RawDescriptionHelpFormatter,
+                      argparse.ArgumentDefaultsHelpFormatter):
+    pass
+
+
 # since just a script tool, we do not construct whole target->action->args 
 # structure with oo abstractions which has more flexibility, just register 
 # parser directly
 def get_parser():
     """ return a parser """
-    parser = argparse.ArgumentParser("cli")
+    parser = argparse.ArgumentParser("harborctl.py", 
+        description=sys.modules[__name__].__doc__, 
+        formatter_class=CustomFormatter)
 
     parser.add_argument('--username', action='store', required=True, help='username')
     parser.add_argument('--password', action='store', required=True, help='password')
@@ -146,11 +164,32 @@ def get_parser():
     manifest_get_parser.add_argument('--tag', action='store', required=True,
             help='manifest reference')
 
+    g = parser.add_mutually_exclusive_group()
+    g.add_argument("--debug", "-d", action="store_true",
+                   default=False,
+                   help="enable debugging")
+    g.add_argument("--silent", "-s", action="store_true",
+                   default=False,
+                   help="don't log to console")
+
     return parser
+
+
+def setup_logging(options):
+    """Configure logging."""
+    root = logging.getLogger("")
+    root.setLevel(logging.WARNING)
+    logger.setLevel(options["debug"] and logging.DEBUG or logging.INFO)
+    if not options["silent"]:
+        ch = logging.StreamHandler()
+        ch.setFormatter(logging.Formatter(
+            "%(levelname)s[%(name)s] %(message)s"))
+        root.addHandler(ch)
 
 
 def main():
     """ main entrance """
+
     # try read config from file
     try:
         with open('config/config.json') as json_data_file:
@@ -161,20 +200,30 @@ def main():
         parser = get_parser()
         options = parser.parse_args(sys.argv[1:])
         options = vars(options)
+    print(options)
+    setup_logging(options)
 
-    registry = RegistryApi(options["username"], options["password"],
-        options["registry_endpoint"])
-    harbor = HarborApi(options["username"], options["password"],
-        options["registry_endpoint"])
+    try:
+        logger.debug("Start {} for {} in {}".format(options["action"],
+                                                    options["target"],
+                                                    options["registry_endpoint"]))
 
-    if 'from_file' in options:
-        proxy2 = ApiProxy2(harbor, options)
-        proxy2.execute(options['target'], options['action'])
-        return 'Done!'
+        registry = RegistryApi(options["username"], options["password"],
+                                options["registry_endpoint"])
+        harbor = HarborApi(options["username"], options["password"],
+                            options["registry_endpoint"])
 
-    proxy = ApiProxy(registry, options)
-    proxy.execute(options['target'], options['action'])
+        if 'from_file' in options:
+            proxy2 = ApiProxy2(harbor, options)
+            proxy2.execute(options['target'], options['action'])
+            return 'Done!'
 
+        proxy = ApiProxy(registry, options)
+        proxy.execute(options['target'], options['action'])
+    except Exception as e:
+        logger.exception("%s", e)
+        sys.exit(1)
+    sys.exit(0)
 
 if __name__ == '__main__':
     main()
