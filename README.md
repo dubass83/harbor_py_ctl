@@ -1,3 +1,5 @@
+# DEPRECATED: For now "harbor 2.0" support tags retention
+---
 # harbor_py_ctl
 
 ### fork from [official harbor repo](https://github.com/goharbor/harbor/blob/master/contrib/registryapi)
